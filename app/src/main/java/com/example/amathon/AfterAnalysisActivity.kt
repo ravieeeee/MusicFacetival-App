@@ -20,7 +20,5 @@ class AfterAnalysisActivity : AppCompatActivity() {
         val bitmap = intent.getParcelableExtra("selected") as Bitmap
         Log.e("11111", bitmap.toString())
         iv_selected?.setImageBitmap(bitmap)
-
     }
-
 }
