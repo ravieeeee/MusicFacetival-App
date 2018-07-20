@@ -18,13 +18,16 @@ import android.widget.ImageView
 
 import java.io.IOException
 import android.R.attr.data
+import android.content.Context
 import android.graphics.Bitmap
 import android.support.v4.app.NotificationCompat.getExtras
-
+import android.widget.Toast
 
 
 class MainActivity : AppCompatActivity() {
     private var btn_select_img: Button? = null
+    private var img_static: Bitmap? = null
+    private var iv_selected: ImageView? = null
 
     private val GALLERY_CODE = 1112
 
@@ -33,8 +36,23 @@ class MainActivity : AppCompatActivity() {
 
         btn_select_img = findViewById(R.id.btn_select_img)
 
+        Toast.makeText(this.applicationContext, "main", Toast.LENGTH_SHORT).show()
+
 
         setContentView(R.layout.activity_main)
+
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.e("onRestart!!!!", "!!!!")
+//        setContentView(R.layout.activity_afteranalysis)
+        Toast.makeText(this.applicationContext, "restart!!!!", Toast.LENGTH_SHORT).show()
+//
+//        iv_selected = findViewById(R.id.iv_selected)
+//        iv_selected?.setImageBitmap(img_static)
+
+
     }
 
     fun onClick_btn_select_img(v: View) {
@@ -62,7 +80,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
+        val intent2 = Intent(super.getApplicationContext(), AfterAnalysisActivity::class.java).apply {
+            putExtra("selected", img_static)
+        }
+        startActivity(intent2)
+        Toast.makeText(this.applicationContext, "after intent", Toast.LENGTH_SHORT).show()
+//        finish()
     }
 
     private fun sendPicture(imgUri: Uri?) {
@@ -90,12 +113,7 @@ class MainActivity : AppCompatActivity() {
 //        iv_selected?.setImageBitmap(bitmap)
         Log.e("success", "~~~")
 
-
-        val intent = Intent(this, AfterAnalysisActivity::class.java).apply {
-            putExtra("selected", bitmap)
-        }
-
-        startActivity(intent)
+        img_static = bitmap
     }
 
     // 사진 절대경로 가져오기
