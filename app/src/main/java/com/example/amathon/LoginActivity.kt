@@ -16,6 +16,4 @@ class LoginActivity : AppCompatActivity() {
         user_password = findViewById(R.id.et_user_password)
 
     }
-
-
 }

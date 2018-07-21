@@ -3,22 +3,24 @@ package com.example.amathon
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.widget.ImageView
-import android.widget.Toast
+import android.widget.TextView
 
 class AfterAnalysisActivity : AppCompatActivity() {
     private var iv_selected: ImageView? = null
+    lateinit var tv_result: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_afteranalysis)
 
-        Toast.makeText(this.applicationContext, "after", Toast.LENGTH_SHORT).show()
-
         iv_selected = findViewById(R.id.iv_selected)
+        tv_result = findViewById(R.id.tv_result)
+
         val bitmap = intent.getParcelableExtra("selected") as Bitmap
-        Log.e("11111", bitmap.toString())
+        val recog_result = intent.getStringExtra("recog_result")
+
+        tv_result.setText(recog_result)
         iv_selected?.setImageBitmap(bitmap)
     }
 }

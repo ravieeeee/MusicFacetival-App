@@ -17,6 +17,9 @@ import android.widget.Toast
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
@@ -28,17 +31,17 @@ class MainActivity : AppCompatActivity() {
     private var image : MultipartBody.Part?=null
 
     private val GALLERY_CODE = 1112
+    lateinit var networkService: NetworkService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        networkService = ApplicationController.instance.networkService
 
         btn_select_img = findViewById(R.id.btn_select_img)
 
         Toast.makeText(this.applicationContext, "main", Toast.LENGTH_SHORT).show()
-
-
-        setContentView(R.layout.activity_main)
-
     }
 
     fun onClick_btn_select_img(v: View) {
@@ -53,33 +56,19 @@ class MainActivity : AppCompatActivity() {
 
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == GALLERY_CODE && data != null) {
-                sendHttpRequest(data)
                 sendPicture(data.data)
+
+                sendHttpRequest(data)
             }
         }
-
-        val intent2 = Intent(super.getApplicationContext(), AfterAnalysisActivity::class.java).apply {
-            putExtra("selected", img_static)
-        }
-        startActivity(intent2)
     }
 
     private fun sendPicture(imgUri: Uri?) {
         val imagePath = getRealPathFromURI(imgUri) // path 경로
-        var exif: ExifInterface? = null
-        try {
-            exif = ExifInterface(imagePath)
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        val exifOrientation = exif!!.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        val exifDegree = exifOrientationToDegrees(exifOrientation)
 
         val bitmap = BitmapFactory.decodeFile(imagePath)//경로를 통해 비트맵으로 전환
 
         img_static = bitmap
-
     }
 
     // 표정인식!!!!
@@ -90,35 +79,34 @@ class MainActivity : AppCompatActivity() {
         val photoBody = RequestBody.create(MediaType.parse("image/jpeg"),baos.toByteArray())
         val photo = File(data.toString()) // 파일의 이름을 알아내려고 한다.
 
-        image = MultipartBody.Part.createFormData("image_profile",photo.name, photoBody)
+        image = MultipartBody.Part.createFormData("image",photo.name, photoBody)
 
+        sendImage()
+    }
 
+    fun sendImage(){
+        val result = networkService.postImage(image)
+        result.enqueue(object : Callback<Result>{
+            override fun onFailure(call: Call<Result>?, t: Throwable?) {
+                Log.v("123",t!!.toString())
+            }
 
+            override fun onResponse(call: Call<Result>?, response: Response<Result>?) {
+                if(response!!.isSuccessful){
+                    val intent2 = Intent(applicationContext, AfterAnalysisActivity::class.java).apply {
+                        putExtra("selected", img_static)
+                        putExtra("recog_result", response.body()!!.result.toString())
+                    }
 
-//        val url = "52.78.25.56:3000/api/upload"
-//        val obj = URL(url)
-//
-//        with(obj.openConnection() as HttpURLConnection) {
-//            // optional default is GET
-//            requestMethod = "POST"
-//
-//            Log.e("Post request URL", url)
-////            Log.e("Response Code", responseCode)
-//
-////            println("\nSending 'GET' request to URL : $url")
-////            println("Response Code : $responseCode")
-//
-//            BufferedReader(InputStreamReader(inputStream)).use {
-//                val response = StringBuffer()
-//
-//                var inputLine = it.readLine()
-//                while (inputLine != null) {
-//                    response.append(inputLine)
-//                    inputLine = it.readLine()
-//                }
-//                println(response.toString())
-//            }
-//        }
+                    startActivity(intent2)
+                    finish()
+
+                } else{
+                    Log.v("789",response.toString())
+                }
+            }
+        })
+
     }
 
     // 사진 절대경로 가져오기
